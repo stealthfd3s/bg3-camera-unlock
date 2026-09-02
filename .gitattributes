@@ -1,0 +1,36 @@
+# Normalize line endings: everything text is LF in the repository.
+* text=auto eol=lf
+
+*.cpp    text eol=lf
+*.hpp    text eol=lf
+*.mm     text eol=lf
+*.S      text eol=lf
+*.txt    text eol=lf
+*.md     text eol=lf
+*.ini    text eol=lf
+*.in     text eol=lf
+*.json   text eol=lf
+*.yml    text eol=lf
+*.py     text eol=lf
+*.sh     text eol=lf
+
+# Shell scripts must stay executable and LF regardless of platform.
+*.sh     text eol=lf
+scripts/* text eol=lf
+
+# Binary: never diff, never munge. The project ships no game assets, but
+# release archives and any future image do pass through here.
+*.icns   binary
+*.png    binary
+*.jpg    binary
+*.gif    binary
+*.dmg    binary
+*.zip    binary
+*.dylib  binary
+*.pak    binary
+*.lsf    binary
+*.loca   binary
+
+# Keep generated/vendored text out of language statistics.
+LICENSE             linguist-vendored
+MODDING-EXCEPTION.txt linguist-vendored

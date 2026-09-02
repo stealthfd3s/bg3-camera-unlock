@@ -1,0 +1,13 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question about installing or configuring
+    url: https://github.com/stealthfd3s/bg3-camera-unlock/discussions
+    about: Ask here rather than opening a bug, if nothing is actually broken.
+  - name: Configuration reference
+    url: https://github.com/stealthfd3s/bg3-camera-unlock/blob/main/docs/CONFIG.md
+    about: Every option, its range, and tuning advice.
+  - name: Email the author
+    url: mailto:hello@stealth.vision
+    about: >-
+      For bug reports and compatibility issues, or to report a security
+      issue privately. Include your mod version, game version and logs.

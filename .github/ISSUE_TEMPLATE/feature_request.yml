@@ -1,0 +1,59 @@
+name: Feature request
+description: Suggest a camera behaviour, option, or improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please note the scope of this project:
+
+        - **macOS on Apple Silicon only.** Windows and Intel are out of scope.
+        - **Camera behaviour and camera/controller/keyboard input.** The
+          Camera + WASD edition also enables WASD character movement. Not a
+          UI, netcode, quest, or content mod.
+        - Everything works by pattern-scanning the shipped game binary, so a
+          feature is only possible if the relevant code can be located and
+          hooked safely.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the situation, not the solution you have in mind.
+      placeholder: "When I pitch fully down in combat, I can't tell how far the camera is from the ground."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like it to do?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of change is this?
+      options:
+        - A new configuration option
+        - A change to an existing default
+        - New camera behaviour
+        - Controller or input handling
+        - Launcher or install experience
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Have you tried tuning the existing options?
+      description: >
+        See docs/CONFIG.md. Many requests are already reachable — for example
+        a dead zoom band is usually `ZoomMinimumResponse`, and floor clipping
+        is usually `FloorSafetyOffset`.
+    validations:
+      required: false

@@ -1,0 +1,27 @@
+# https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+max_line_length = 80
+
+[*.{yml,yaml,json}]
+indent_size = 2
+
+[*.md]
+# Two trailing spaces are a hard line break in Markdown.
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+
+# The license texts are verbatim upstream documents; never reformat them.
+[{LICENSE,MODDING-EXCEPTION.txt,NOTICE}]
+trim_trailing_whitespace = false
+insert_final_newline = false
+max_line_length = off

@@ -1,0 +1,264 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # The check that matters most: nothing resembling game content or build
+  # output may enter the repository. Runs first and cheaply.
+  no-game-content:
+    name: No game content
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan tracked files
+        run: bash scripts/check-no-game-content.sh
+
+      - name: Scan the working tree as a staging folder
+        run: bash scripts/check-no-game-content.sh --tree .
+
+      # A file can be deleted from the tip and still sit in history, where it
+      # is just as much of a redistribution problem.
+      - name: Scan full history for large blobs
+        run: |
+          echo "Largest objects ever committed:"
+          git rev-list --objects --all \
+            | git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' \
+            | awk '$1 == "blob" && $3 > 2097152 { print $3, $4 }' \
+            | sort -rn | tee /tmp/large-blobs.txt
+          if [ -s /tmp/large-blobs.txt ]; then
+            echo "::error::Blobs over 2 MB exist in history. See NOTICE."
+            exit 1
+          fi
+          echo "No oversized blobs in history."
+
+  lint:
+    name: Lint and validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shell scripts
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck zsh
+          shellcheck -S warning \
+            scripts/check-no-game-content.sh \
+            tools/bump-version.sh
+          # package.sh is zsh, which shellcheck cannot parse.
+          zsh -n scripts/package.sh
+
+      - name: YAML
+        run: |
+          python3 -m pip install --quiet pyyaml
+          python3 - <<'PY'
+          import glob, sys, yaml
+          bad = False
+          for path in sorted(glob.glob('.github/**/*.yml', recursive=True)):
+              try:
+                  yaml.safe_load(open(path))
+                  print('ok', path)
+              except Exception as exc:
+                  bad = True
+                  print('FAIL', path, exc)
+          sys.exit(1 if bad else 0)
+          PY
+
+      - name: XML and property lists
+        run: |
+          python3 - <<'PY'
+          import glob, re, sys
+          import xml.etree.ElementTree as ET
+          bad = False
+          targets = glob.glob('**/*.plist', recursive=True) \
+              + glob.glob('**/*.plist.in', recursive=True) \
+              + glob.glob('**/*.lsx', recursive=True) \
+              + glob.glob('**/*.xml', recursive=True)
+          for path in sorted(targets):
+              source = open(path, encoding='utf-8').read()
+              # Info.plist.in carries @VAR@ placeholders CMake fills in;
+              # neutralise them so the template still parses as XML.
+              source = re.sub(r'@[A-Z0-9_]+@', 'x', source)
+              try:
+                  ET.fromstring(source)
+                  print('ok', path)
+              except Exception as exc:
+                  bad = True
+                  print('FAIL', path, exc)
+          if not targets:
+              print('no XML files to validate')
+          sys.exit(1 if bad else 0)
+          PY
+
+      - name: Config schema (both flavors)
+        run: |
+          python3 - <<'PY'
+          # Every key in each shipped default config must be one the C++ parser
+          # recognises, and the parser must not accept a key that is absent
+          # from the default config. A mismatch is the documentation bug this
+          # project shipped once already.
+          import re, sys, glob
+          parser = open('src/CameraConfig.cpp', encoding='utf-8').read()
+          known = set(re.findall(r'EqualsIgnoringCase\(key,\s*"(\w+)"\)', parser))
+          bad = False
+          inis = sorted(glob.glob('assets/BG3CameraUnlock-*.ini'))
+          assert inis, 'no flavor config files found'
+          for path in inis:
+              ini = open(path, encoding='utf-8').read()
+              ini_keys = set()
+              for number, line in enumerate(ini.splitlines(), 1):
+                  line = line.strip()
+                  if not line or line[0] in '#;[':
+                      continue
+                  if '=' not in line:
+                      print(f'FAIL {path}:{number} expected Key=Value: {line!r}')
+                      bad = True
+                      continue
+                  ini_keys.add(line.split('=', 1)[0].strip())
+              unknown = ini_keys - known
+              if unknown:
+                  print(f'FAIL {path} has keys the parser ignores: {sorted(unknown)}')
+                  bad = True
+              undocumented = known - ini_keys
+              if undocumented:
+                  print(f'FAIL {path} omits keys the parser accepts: {sorted(undocumented)}')
+                  bad = True
+              print(f'{path}: {len(ini_keys)} keys, all recognised')
+          sys.exit(1 if bad else 0)
+          PY
+
+      - name: Documentation is in sync
+        run: |
+          python3 - <<'PY'
+          import re, sys
+          readme = open('README.md', encoding='utf-8').read()
+          nexus = open('docs/NEXUS.md', encoding='utf-8').read()
+          config_doc = open('docs/CONFIG.md', encoding='utf-8').read()
+          cmake = open('CMakeLists.txt', encoding='utf-8').read()
+          changelog = open('CHANGELOG.md', encoding='utf-8').read()
+          bad = False
+
+          version = re.search(r'set\(BG3_CAMERA_VERSION "([^"]+)"\)', cmake).group(1)
+          # shields.io escapes a literal '-' as '--' in the badge path.
+          badge = version.replace('-', '--')
+          if f'badge/version-{badge}-' not in readme:
+              print(f'FAIL README badge does not show {version} (expected badge/version-{badge}-)')
+              bad = True
+          if f'## [{version}]' not in changelog:
+              print(f'FAIL CHANGELOG has no section for {version}')
+              bad = True
+
+          builds = set(re.findall(r'4\.\d+\.\d+\.\d{6,}', readme + nexus))
+          if len(builds) > 1:
+              print(f'FAIL README and NEXUS disagree on the game build: {sorted(builds)}')
+              bad = True
+
+          keys = set(re.findall(r'EqualsIgnoringCase\(key,\s*"(\w+)"\)',
+                                open('src/CameraConfig.cpp', encoding='utf-8').read()))
+          # README and CONFIG document every key; NEXUS only needs the
+          # user-facing essentials.
+          for name, text in (('README.md', readme), ('docs/CONFIG.md', config_doc)):
+              missing = sorted(k for k in keys if k not in text)
+              if missing:
+                  print(f'FAIL {name} does not document: {missing}')
+                  bad = True
+          nexus_essentials = [
+              'GamepadHorizontalSensitivity', 'GamepadVerticalSensitivity',
+              'TrackpadHorizontalSensitivity', 'TrackpadVerticalSensitivity',
+              'MouseHorizontalSensitivity', 'MouseVerticalSensitivity',
+              'KeyboardMovement',
+          ]
+          missing = [k for k in nexus_essentials if k not in nexus]
+          if missing:
+              print(f'FAIL docs/NEXUS.md does not mention: {missing}')
+              bad = True
+
+          # The two flavors must both be described wherever the mod is pitched.
+          for name, text in (('README.md', readme), ('docs/NEXUS.md', nexus)):
+              if 'Camera Only' not in text or 'Camera + WASD' not in text:
+                  print(f'FAIL {name} does not describe both flavors')
+                  bad = True
+
+          print(f'version {version}, game build {builds.pop() if builds else "n/a"}, '
+                f'{len(keys)} config keys')
+          sys.exit(1 if bad else 0)
+          PY
+
+  build:
+    name: Build and test
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flavor: camera-only
+            wasd: "OFF"
+            bundle: "BG3 Camera Unlock (Camera Only)"
+            patterns: 14
+          - flavor: camera-wasd
+            wasd: "ON"
+            bundle: "BG3 Camera Unlock (Camera + WASD)"
+            patterns: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure (${{ matrix.flavor }})
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBG3_CAMERA_WERROR=ON \
+            -DBG3_CAMERA_WITH_WASD=${{ matrix.wasd }}
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Verify the icon was generated
+        run: |
+          test -f build/BG3CameraUnlock.icns \
+            || { echo "::error::icon was not generated"; exit 1; }
+          file build/BG3CameraUnlock.icns
+
+      - name: Verify the bundle (${{ matrix.flavor }})
+        run: |
+          APP="build/${{ matrix.bundle }}.app"
+          test -d "$APP" || { echo "::error::no app bundle at $APP"; exit 1; }
+          plutil -lint "$APP/Contents/Info.plist"
+          for required in \
+            "Contents/MacOS/${{ matrix.bundle }}" \
+            "Contents/Resources/BG3CameraUnlock.dylib" \
+            "Contents/Resources/BG3CameraUnlock-${{ matrix.flavor }}.ini"; do
+            test -e "$APP/$required" \
+              || { echo "::error::missing $required"; exit 1; }
+          done
+
+          version=$(sed -n 's/^set(BG3_CAMERA_VERSION "\(.*\)")$/\1/p' CMakeLists.txt)
+          actual=$(plutil -extract CFBundleShortVersionString raw \
+            "$APP/Contents/Info.plist")
+          [ "$version" = "$actual" ] || {
+            echo "::error::bundle says $actual, CMakeLists says $version"; exit 1; }
+
+          flavor=$(plutil -extract BG3CameraUnlockFlavor raw "$APP/Contents/Info.plist")
+          [ "$flavor" = "${{ matrix.flavor }}" ] || {
+            echo "::error::bundle flavor is $flavor, expected ${{ matrix.flavor }}"; exit 1; }
+          echo "Bundle $actual / $flavor OK"
+
+      - name: Verify the architecture
+        run: |
+          DYLIB="build/${{ matrix.bundle }}.app/Contents/Resources/BG3CameraUnlock.dylib"
+          lipo -info "$DYLIB"
+          lipo -info "$DYLIB" | grep -q arm64 \
+            || { echo "::error::dylib is not arm64"; exit 1; }

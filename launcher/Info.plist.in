@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleDisplayName</key>
+    <string>@BG3_CAMERA_BUNDLE_NAME@</string>
+    <key>CFBundleExecutable</key>
+    <string>@BG3_CAMERA_BUNDLE_NAME@</string>
+    <key>CFBundleIdentifier</key>
+    <string>@BG3_CAMERA_BUNDLE_ID@</string>
+    <key>CFBundleIconFile</key>
+    <string>BG3CameraUnlock.icns</string>
+    <key>CFBundleIconName</key>
+    <string>BG3CameraUnlock</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>@BG3_CAMERA_BUNDLE_NAME@</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>@BG3_CAMERA_VERSION@</string>
+    <key>CFBundleVersion</key>
+    <string>@BG3_CAMERA_VERSION@</string>
+    <key>BG3CameraUnlockFlavor</key>
+    <string>@BG3_CAMERA_FLAVOR@</string>
+    <key>BG3CameraUnlockFlavorName</key>
+    <string>@BG3_CAMERA_FLAVOR_NAME@</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>12.0</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright (C) 2026 stealthfd3s. GPL-3.0-or-later with a modding exception. Unofficial; not affiliated with Larian Studios.</string>
+</dict>
+</plist>

@@ -1,0 +1,148 @@
+name: Bug report
+description: Something is wrong with the camera, the launcher, or the install
+title: "[Bug]: "
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **The log and your exact location are what make
+        a report reproducible** — a report without them usually cannot be
+        acted on.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before reporting
+      options:
+        - label: I launched the game through **BG3 Camera Unlock**, not Steam's Play button
+          required: true
+        - label: I am on an Apple Silicon Mac (M1 or newer)
+          required: true
+        - label: I checked the Known Issues section of the README
+          required: true
+        - label: I am not running another native camera or input mod
+          required: true
+
+  - type: input
+    id: game-build
+    attributes:
+      label: Baldur's Gate 3 build
+      description: "Steam → right-click BG3 → Properties → Updates. Known-good: 4.1.1.7398727"
+      placeholder: "4.1.1.7398727"
+    validations:
+      required: true
+
+  - type: input
+    id: mod-version
+    attributes:
+      label: BG3 Camera Unlock version
+      description: Shown in the launcher, and in the first lines of mod.log
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      description: "  → About This Mac"
+      placeholder: "14.5"
+    validations:
+      required: true
+
+  - type: input
+    id: hardware
+    attributes:
+      label: Mac model and chip
+      placeholder: "MacBook Pro 14-inch, M3 Pro"
+    validations:
+      required: true
+
+  - type: input
+    id: controller
+    attributes:
+      label: Controller
+      placeholder: "DualSense / Xbox Series / 8BitDo Pro 2"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you got instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: location
+    attributes:
+      label: Exact location and camera mode
+      description: >
+        Act, area, and the nearest landmark. Say whether you were in RPG,
+        tactical, combat, dialogue, or camp mode. Camera bugs are almost
+        always geometry-specific.
+      placeholder: "Moonrise Towers, Main Floor, north stairs. RPG mode."
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Walk down the north stairs
+        2. Hold the right stick upward
+        3. Rotate right
+        4. Camera enters the floor on the third step
+    validations:
+      required: true
+
+  - type: input
+    id: frequency
+    attributes:
+      label: How often does it reproduce?
+      placeholder: "3 out of 3 attempts"
+    validations:
+      required: true
+
+  - type: textarea
+    id: mod-log
+    attributes:
+      label: mod.log
+      description: >
+        From `~/Documents/BG3 Camera Unlock/mod.log`. In Finder press
+        Shift-Cmd-G and paste that path. **Set `VerboseLogging=true` in
+        config.ini and reproduce once more before copying** — it captures the
+        camera state changes. Paste the whole file if it is short, otherwise
+        the startup block plus the lines around the problem.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Your config.ini
+      description: From `~/Documents/BG3 Camera Unlock/config.ini`
+      render: ini
+    validations:
+      required: true
+
+  - type: textarea
+    id: launcher-log
+    attributes:
+      label: launcher.log
+      description: Only needed if the game did not start, or the launcher showed a warning.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshot or video
+      description: Drag files in here. Strongly recommended for anything visual.
+    validations:
+      required: false

@@ -1,0 +1,104 @@
+BG3 Camera Unlock — Modding Exception to the GNU GPL version 3
+===============================================================
+
+This file grants an additional permission under section 7 of the GNU
+General Public License, version 3 ("GPL-3.0"). BG3 Camera Unlock is
+distributed under "GPL-3.0-or-later"; this permission travels with it and
+applies whichever version of the GPL a recipient chooses. Where this
+permission and the GPL differ, this permission controls for the matter it
+covers; in every other respect the GPL applies unchanged.
+
+This is a project-specific permission written for BG3 Camera Unlock. It is
+not a standard SPDX license exception and has no SPDX identifier.
+
+
+Definitions
+-----------
+
+"Program" means BG3 Camera Unlock: the injected dynamic library, the macOS
+launcher application, and their source code, as distributed under this
+license, together with any work based on them.
+
+"Modded Application" means Baldur's Gate 3, published by Larian Studios, and
+any other separate application that the Program is designed to load into and
+modify at run time.
+
+
+Why this permission exists
+--------------------------
+
+The Program is a game modification. To do anything at all it is loaded into
+the address space of the Modded Application by the end user, on the end
+user's own machine, and it reads and calls code belonging to that
+application at run time.
+
+The Program does not bundle or redistribute the Modded Application, and it
+does not include enough of its code to run or to reconstruct it. The short
+machine-code signatures it does contain, and their purpose, are described in
+the NOTICE file. Whether combining two separate programs at run time on the
+end user's machine produces a single "combined work" for GPL purposes is a
+question different people answer differently. Rather than ask users and
+contributors to resolve that question before they can use, study, modify, or
+share the Program, the copyright holders of the Program grant the permission
+below.
+
+This permission is granted only for the Program's own code, which is all its
+copyright holders have the right to license.
+
+
+Grant of additional permission
+------------------------------
+
+1. Interoperation with the Modded Application.
+
+   You are given permission to use, propagate, and convey the Program, and
+   works based on the Program, in combination with a Modded Application, and
+   to distribute the Program in a form intended to be loaded into such an
+   application.
+
+   The copyright holders of the Program will not assert that doing so, by
+   itself, places the Modded Application under the GPL or requires you to
+   provide source code for the Modded Application.
+
+   This permission grants no rights in the Modded Application itself — no
+   right to copy, modify, or redistribute it, its assets, its data files, or
+   its trademarks. No copyright in the Modded Application is claimed,
+   licensed, waived, or otherwise affected by the Program or by this
+   permission.
+
+2. Interoperation with modding frameworks and libraries.
+
+   The same permission extends to combining the Program with mod loaders,
+   script extenders, injection frameworks, and similar tooling needed to run
+   modifications of the Modded Application, including such tooling released
+   under licenses incompatible with the GPL.
+
+3. What is NOT covered.
+
+   This permission covers interoperation only. The Program's own source
+   code, and every modified version of it, remain fully subject to the GPL.
+   If you convey the Program or a work based on it, you must still make the
+   complete corresponding source of that work available under the GPL, as
+   its sections 4 through 6 require.
+
+   Combining the Program with a Modded Application does not create any
+   exemption for the Program's own code. You cannot use this permission to
+   distribute a modified BG3 Camera Unlock without its corresponding source.
+
+
+Removing this permission
+------------------------
+
+As GPL-3.0 section 7 allows for any added permission, you may remove this
+permission from your copy of the Program, or from any modified version you
+convey, in which case the plain GPL applies to that copy. You may also keep
+it and pass it on; doing so is encouraged, so that recipients keep the same
+freedom to interoperate.
+
+
+Trademarks and third-party rights
+---------------------------------
+
+Nothing in this permission grants any right in the trademarks, trade dress,
+service marks, artwork, or other property of Larian Studios or of any other
+third party. See the NOTICE file.

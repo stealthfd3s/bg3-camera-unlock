@@ -1,0 +1,136 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build (e.g. v1.0.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+          fetch-depth: 0
+
+      - name: Refuse to ship game content
+        run: bash scripts/check-no-game-content.sh
+
+      - name: Resolve the version
+        id: version
+        run: |
+          tag="${{ github.event.inputs.tag || github.ref_name }}"
+          tag_version="${tag#v}"
+          cmake_version=$(sed -n 's/^set(BG3_CAMERA_VERSION "\(.*\)")$/\1/p' \
+            CMakeLists.txt)
+
+          # A tag that disagrees with the source is how a release ends up
+          # labelled one version and containing another.
+          if [ "$tag_version" != "$cmake_version" ]; then
+            echo "::error::tag $tag says $tag_version but CMakeLists.txt says $cmake_version"
+            exit 1
+          fi
+          if ! grep -q "^## \[$cmake_version\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no section for $cmake_version"
+            exit 1
+          fi
+
+          echo "version=$cmake_version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Releasing $cmake_version from tag $tag"
+
+      - name: Package both flavors
+        run: ./scripts/package.sh
+
+      - name: Extract the changelog entry
+        id: notes
+        run: |
+          python3 - <<'PY' > release-notes.md
+          import os, re
+          version = os.environ['VERSION']
+          text = open('CHANGELOG.md', encoding='utf-8').read()
+          match = re.search(
+              r'^## \[' + re.escape(version) + r'\][^\n]*\n(.*?)(?=^## \[|\Z)',
+              text, re.S | re.M)
+          body = match.group(1).strip() if match else '_No changelog entry._'
+          print(body)
+          PY
+          {
+            echo "## Downloads"
+            echo
+            echo "Two flavors, one RC version. Pick one; the only difference"
+            echo "is keyboard character movement."
+            echo
+            echo "| File | What it is |"
+            echo "|---|---|"
+            echo "| \`CameraOnly-*.dmg\` | **Camera Only.** Drag-to-install disk image. |"
+            echo "| \`CameraWASD-*.dmg\` | **Camera + WASD.** Same, plus W/A/S/D character movement. |"
+            echo "| \`*-nexus.zip\` | Same contents, zipped, for Nexus (per flavor). |"
+            echo "| \`*-source.zip\` | Complete corresponding source — builds either flavor (GPL-3.0 §6). |"
+            echo "| \`SHA256SUMS.txt\` | Checksums for every file above. |"
+            echo
+            echo "> Apple Silicon Macs only, macOS 12+, Steam edition of the game."
+            echo "> Ad-hoc signed, not notarized: on first launch, right-click"
+            echo "> the app and choose **Open** (macOS 14 and earlier) or use"
+            echo "> System Settings -> Privacy & Security -> Open Anyway."
+            echo
+            echo "---"
+            echo
+            cat release-notes.md
+            echo
+            echo "---"
+            echo
+            echo "### Checksums"
+            echo
+            echo '```'
+            cat dist/SHA256SUMS.txt
+            echo '```'
+          } > release-body.md
+          cat release-body.md
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+
+      - name: List what is being published
+        run: |
+          ls -la dist/
+          for z in dist/*-nexus.zip; do
+            echo; echo "== $z =="; unzip -l "$z"
+          done
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: BG3 Camera Unlock ${{ steps.version.outputs.version }}
+          body_path: release-body.md
+          draft: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/BG3-Camera-Unlock-CameraOnly-macOS-arm64-${{ steps.version.outputs.version }}.dmg
+            dist/BG3-Camera-Unlock-CameraOnly-macOS-arm64-${{ steps.version.outputs.version }}-nexus.zip
+            dist/BG3-Camera-Unlock-CameraWASD-macOS-arm64-${{ steps.version.outputs.version }}.dmg
+            dist/BG3-Camera-Unlock-CameraWASD-macOS-arm64-${{ steps.version.outputs.version }}-nexus.zip
+            dist/BG3-Camera-Unlock-macOS-arm64-${{ steps.version.outputs.version }}-source.zip
+            dist/SHA256SUMS.txt
+
+      - name: Summary
+        run: |
+          {
+            echo "### Release ${{ steps.version.outputs.version }} drafted"
+            echo
+            echo "Published as a **draft**. Review the artifacts, then hit"
+            echo "Publish release on the GitHub releases page."
+            echo
+            echo '```'
+            cat dist/SHA256SUMS.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

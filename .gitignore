@@ -1,0 +1,57 @@
+# Build output
+build/
+build-*/
+cmake-build-*/
+dist/
+*.iconset/
+*.icns
+*.dSYM/
+CMakeCache.txt
+CMakeFiles/
+
+# ---------------------------------------------------------------------------
+# Game content — never commit any of this.
+#
+# This project redistributes no Baldur's Gate 3 files. The offline pattern
+# verification tool takes a path to the user's own game binary; that binary
+# is ~233 MB of Larian's copyrighted code and must never enter git history,
+# where removing it would require rewriting every later commit.
+#
+# scripts/check-no-game-content.sh enforces this in CI and as a pre-commit
+# hook. These patterns are the first line of defence, not the only one.
+# ---------------------------------------------------------------------------
+bg3-re/
+bg3-arm64
+*-arm64
+bink2w64*.dll
+*.pak
+*.lsf
+*.loca
+Baldur's Gate 3.app/
+BG3Icon.icns
+
+# Logs and local run state
+*.log
+mod.log
+launcher.log
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+.cache/
+compile_commands.json
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Internal maintainer notes — kept locally, not part of the public repository
+docs/dev/

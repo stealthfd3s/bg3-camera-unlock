@@ -1,0 +1,17 @@
+# Matches the style already used throughout src/ and launcher/.
+Language: Cpp
+BasedOnStyle: Google
+ColumnLimit: 80
+IndentWidth: 4
+AccessModifierOffset: -2
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+BreakBeforeBraces: Attach
+DerivePointerAlignment: false
+PointerAlignment: Left
+SpaceAfterCStyleCast: false
+SortIncludes: false
+ObjCBlockIndentWidth: 4
+ObjCSpaceAfterProperty: false
+ObjCSpaceBeforeProtocolList: true

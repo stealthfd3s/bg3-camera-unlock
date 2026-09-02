@@ -1,0 +1,86 @@
+BG3 Camera Unlock for macOS
+Copyright (C) 2026 stealthfd3s
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version, together with the additional permission in
+MODDING-EXCEPTION.txt. See LICENSE for the full license text.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+
+No game content is redistributed
+-------------------------------
+
+This project ships no Baldur's Gate 3 assets: no textures, audio, models,
+animations, localization data, artwork, icons, or `.pak`/`.lsf`/`.lsx`
+data, and no copy of the game executable or any part of it large enough to
+run or to reconstruct. It installs no file into the game and overrides no
+file on disk.
+
+For interoperability it does contain a small number of short machine-code
+signatures — a few dozen bytes each — copied from the shipped ARM64
+executable so the injected library can locate the functions it hooks.
+These are listed in `src/Patterns.hpp` with the disassembly they were
+derived from. They exist only to find code at run time and are not a
+usable excerpt of the game.
+
+Building this project requires no game files. The offline pattern
+verification tool (`tools/pattern_test.cpp`) needs the user's own legally
+obtained copy of the game binary, which is never distributed with, or
+included in, this project.
+
+
+What is written to disk
+-----------------------
+
+The injected library changes the running game process's memory to move the
+camera. Those in-memory changes are gone when the game exits. The library
+also appends to its own log file (`mod.log`) and writes a short status
+file that the launcher reads and then deletes.
+
+The launcher writes its own configuration and logs under
+`~/Documents/BG3 Camera Unlock/`, and — with a one-time backup kept beside
+the original — edits the player's own Baldur's Gate 3 input-binding
+profile (`inputconfig_p1.json`) so the added camera bindings take effect.
+It temporarily sets one Baldur's Gate 3 preference (`NoLauncher`) and
+restores it afterwards. It does not modify the game executable, the game
+application bundle, or any save file.
+
+
+Reverse-engineered facts
+------------------------
+
+The memory offsets, structure layouts, calling conventions, and input
+action identifiers used by this project are factual observations about the
+behavior of a shipped binary, obtained by disassembling and debugging a
+legally obtained copy for the purpose of interoperability. No Larian
+source code is included; the work is based only on observation of the
+released binary.
+
+
+Trademarks and ownership
+------------------------
+
+Baldur's Gate, Baldur's Gate 3, the Baldur's Gate 3 logo and emblem, and
+all related names, characters, artwork, and content are trademarks and
+copyrighted property of Larian Studios and of their respective owners.
+
+macOS, Apple Silicon, and Xcode are trademarks of Apple Inc.
+Steam is a trademark of Valve Corporation.
+
+These names are used solely for identification, to describe what this mod
+is compatible with. Their use implies no affiliation or endorsement.
+
+
+Disclaimer
+----------
+
+This is an unofficial, community-made project. It is NOT affiliated with,
+authorized by, sponsored by, or endorsed by Larian Studios, Valve
+Corporation, or Apple Inc.
+
+Use at your own risk.
